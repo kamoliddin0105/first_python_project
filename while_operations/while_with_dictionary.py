@@ -1,3 +1,10 @@
+cars = ['nexia','lacetti','BMW','Mers','nexia','Volvo','nexia']
+print(cars)
+car = 'nexia'
+while car in cars:
+    cars.remove('nexia')
+print(cars)
+
 print("Do'stlarni yoshiga qo'shib saqlaymiz......")
 friends = {}
 lamp = True
@@ -14,3 +21,13 @@ for name, age in friends.items():
 print("dastur tugadi")
 
 print(friends)
+
+students = ['hasan','husan','fotima','zuxra']
+graded_students = {}
+
+while students:
+    student = students.pop()
+    grade = input(f"{student.title()}ning bahosini kiriting: ")
+    print(f"{student.title()} baholandi")
+    graded_students[student] = int(grade)
+print(graded_students)
