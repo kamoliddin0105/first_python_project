@@ -6,47 +6,47 @@ TOKEN = "7785376105:AAEPeFWk6Vm7RrVdjf1Bjxrbd3IIleiYY_g"
 bot = telebot.TeleBot(TOKEN)
 
 
-# @bot.message_handler(commands=['start'])
-# def start(message):
-#     markup = InlineKeyboardMarkup()
-#     btn1 = InlineKeyboardButton("Option 1",callback_data="option1")
-#     btn2 = InlineKeyboardButton("Option 2",callback_data="option2")
-#     btn3 = InlineKeyboardButton("Option 3",callback_data="option3")
-#     markup.add(btn1,btn2,btn3)
-#
-#     bot.send_message(message.chat.id,"Choose an option:",reply_markup=markup)
-#
-# @bot.callback_query_handler(func=lambda call: True)
-# def callback(call):
-#     if call.data == "option1":
-#         bot.send_message(call.message.chat.id,"Option 1")
-#     elif call.data == "option2":
-#         bot.send_message(call.message.chat.id,"Option 2")
-#     elif call.data == "option3":
-#         bot.send_message(call.message.chat.id,"Option 3")
+@bot.message_handler(commands=['start'])
+def start(message):
+    markup = InlineKeyboardMarkup()
+    btn1 = InlineKeyboardButton("Option 1",callback_data="option1")
+    btn2 = InlineKeyboardButton("Option 2",callback_data="option2")
+    btn3 = InlineKeyboardButton("Option 3",callback_data="option3")
+    markup.add(btn1,btn2,btn3)
 
-# @bot.message_handler(commands=['start'])
-# def start(message):
-#     markup = ReplyKeyboardMarkup(resize_keyboard=True)
-#     btn1 = KeyboardButton("Option 1")
-#     btn2 = KeyboardButton("Option 2")
-#     btn3 = KeyboardButton("Option 3")
-#     btn4 = KeyboardButton("Option 4")
-#     btn5 = KeyboardButton("Option 5")
-#     btn6 = KeyboardButton("Option 6")
-#     btn7 = KeyboardButton("Option 7")
-#     markup.add(btn1, btn2, btn3, btn4, btn5, btn6, btn7)
-#
-#     bot.send_message(message.chat.id, "Choose", reply_markup=markup)
-#
-# @bot.message_handler(func=lambda message: True)
-# def reply_handler(message):
-#     if message.text == "Option 1":
-#         bot.send_message(message.chat.id, "You selected Option 1")
-#     elif message.text == "Option 2":
-#         bot.send_message(message.chat.id, "You selected Option 2")
-#     else:
-#         bot.send_message(message.chat.id, "Please selected a valid option")
+    bot.send_message(message.chat.id,"Choose an option:",reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback(call):
+    if call.data == "option1":
+        bot.send_message(call.message.chat.id,"Option 1")
+    elif call.data == "option2":
+        bot.send_message(call.message.chat.id,"Option 2")
+    elif call.data == "option3":
+        bot.send_message(call.message.chat.id,"Option 3")
+
+@bot.message_handler(commands=['start'])
+def start(message):
+    markup = ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = KeyboardButton("Option 1")
+    btn2 = KeyboardButton("Option 2")
+    btn3 = KeyboardButton("Option 3")
+    btn4 = KeyboardButton("Option 4")
+    btn5 = KeyboardButton("Option 5")
+    btn6 = KeyboardButton("Option 6")
+    btn7 = KeyboardButton("Option 7")
+    markup.add(btn1, btn2, btn3, btn4, btn5, btn6, btn7)
+
+    bot.send_message(message.chat.id, "Choose", reply_markup=markup)
+
+@bot.message_handler(func=lambda message: True)
+def reply_handler(message):
+    if message.text == "Option 1":
+        bot.send_message(message.chat.id, "You selected Option 1")
+    elif message.text == "Option 2":
+        bot.send_message(message.chat.id, "You selected Option 2")
+    else:
+        bot.send_message(message.chat.id, "Please selected a valid option")
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -89,6 +89,34 @@ def bmw_models(message):
             bot.send_photo(message.chat.id, photo=photo, caption="BMW m3 photo")
     else:
         bot.send_message(message.chat.id, "Please a valid option")
+
+@bot.message_handler(commands=['start'])
+def start(message):
+    bot.send_message(message.chat.id, f"Hello, {message.from_user.first_name}!")
+
+    markup = ReplyKeyboardMarkup(resize_keyboard=True)
+    contact_button = KeyboardButton("📞 Kontakt yuborish", request_contact=True)
+    markup.add(contact_button)
+
+    bot.send_message(message.chat.id, "Kontaktingizni yuboring", reply_markup=markup)
+
+
+@bot.message_handler(commands=['contact'])
+def contact(message):
+    if message.contact is not None:
+        with open("/Users/macbook/PycharmProjects/first_python_project/functions/bot/create_bot/files/contacts.txt",
+                  "a"):
+            bot.send_message(message.chat.id,
+                             f"Rahmat {message.contact.first_name}! Sizning telefon raqamingiz qabul qilindi va saqlandi")
+
+            markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+            location_button = KeyboardButton("📍 Lokatsiyani ulashish", request_location=True)
+            markup.add(location_button)
+            bot.send_message(message.chat.id, "Endi lokatsiyangizni ulashing:", reply_markup=markup)
+    else:
+        bot.send_message(message.chat.id, "Kontakt ma'lumotlari qabul qilinmadi. Iltimos, qaytadan urinib ko'ring.")
+
+
 
 
 
