@@ -1,4 +1,4 @@
-cars = ['nexia','lacetti','BMW','Mers','nexia','Volvo','nexia']
+cars = ['nexia','lacetti','BMW','Mers.jpg','nexia','Volvo','nexia']
 print(cars)
 car = 'nexia'
 while car in cars:
