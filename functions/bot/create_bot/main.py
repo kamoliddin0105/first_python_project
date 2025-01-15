@@ -1,6 +1,8 @@
 import telebot
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
 
+from functions.bot.my_telegram_bot.data import regions, products
+
 TOKEN = "7785376105:AAEPeFWk6Vm7RrVdjf1Bjxrbd3IIleiYY_g"
 
 bot = telebot.TeleBot(TOKEN)
@@ -90,6 +92,12 @@ def bmw_models(message):
     else:
         bot.send_message(message.chat.id, "Please a valid option")
 
+
+# Another bot
+
+
+user_cart = {}
+
 @bot.message_handler(commands=['start'])
 def start(message):
     bot.send_message(message.chat.id, f"Hello, {message.from_user.first_name}!")
@@ -101,11 +109,12 @@ def start(message):
     bot.send_message(message.chat.id, "Kontaktingizni yuboring", reply_markup=markup)
 
 
-@bot.message_handler(commands=['contact'])
-def contact(message):
+@bot.message_handler(content_types=['contact'])
+def handle_contact(message):
     if message.contact is not None:
         with open("/Users/macbook/PycharmProjects/first_python_project/functions/bot/create_bot/files/contacts.txt",
-                  "a"):
+                  "a") as file:
+            file.write(f"{message.contact.first_name} - {message.contact.phone_number}\n")
             bot.send_message(message.chat.id,
                              f"Rahmat {message.contact.first_name}! Sizning telefon raqamingiz qabul qilindi va saqlandi")
 
@@ -115,6 +124,100 @@ def contact(message):
             bot.send_message(message.chat.id, "Endi lokatsiyangizni ulashing:", reply_markup=markup)
     else:
         bot.send_message(message.chat.id, "Kontakt ma'lumotlari qabul qilinmadi. Iltimos, qaytadan urinib ko'ring.")
+
+
+@bot.message_handler(content_types=['location'])
+def handle_location(message):
+    if message.location is not None:
+        lat = message.location.latitude
+        lon = message.location.longitude
+
+        with open("/Users/macbook/PycharmProjects/first_python_project/functions/bot/create_bot/files/location.txt",
+                  "a") as file:
+            file.write(f"Latitude: {lat}, Longitude: {lon}\n")
+            bot.send_message(message.chat.id,
+                             "Rahmat! Sizning lokatsiyangiz saqlandi va qabul qilindi.")
+
+            markup = ReplyKeyboardMarkup(resize_keyboard=True)
+            for region in regions:
+                markup.add(KeyboardButton(region))
+            bot.send_message(message.chat.id, "Iltimos, quyidagi hududlardan birini tanlang:", reply_markup=markup)
+    else:
+        bot.send_message(message.chat.id, "Lokatsiya ma'lumotlari qabul qilinmadi. Iltimos, qaytadan urinib ko'ring.")
+
+@bot.message_handler(func=lambda message: message.text in regions)
+def handle_countries(message):
+    region = message.text
+    with open("/Users/macbook/PycharmProjects/first_python_project/functions/bot/create_bot/files/region.txt", "a") as file:
+        file.write(f"region - {region}\n")
+    bot.send_message(message.chat.id, "Rahmat! Sizning hududingiz qabul qilindi va saqlandi.")
+
+    markup = ReplyKeyboardMarkup(resize_keyboard=True)
+    for category in products.keys():
+        markup.add(KeyboardButton(category))
+
+    bot.send_message(message.chat.id, "Iltimos quyidagi kategoriyalardan birini tanlang.", reply_markup=markup)
+
+@bot.message_handler(func=lambda message: message.text in products.keys())
+def handle_categories(message):
+    product = message.text
+    if product in products:
+        markup = ReplyKeyboardMarkup(resize_keyboard=True)
+        for item in products[product]:
+            markup.add(KeyboardButton(item))
+        bot.send_message(message.chat.id, "Iltimos, quyidagi mahsulotlardan birini tanlang:", reply_markup=markup)
+    else:
+        bot.send_message(message.chat.id, "Mahsulot qabul qilinmadi. Iltimos, qaytadan urinib ko'ring.")
+
+
+user_cart = {}
+
+@bot.message_handler(func=lambda message: any(message.text in sublist for sublist in products.values()))
+def handle_product_selection(message):
+    selected_product = message.text
+
+    if selected_product not in user_cart:
+        user_cart[selected_product] = 1
+
+    inline_markup = InlineKeyboardMarkup()
+    inline_markup.row(
+        InlineKeyboardButton("➖", callback_data=f"decrease_{selected_product}"),
+        InlineKeyboardButton(f"{user_cart[selected_product]}", callback_data="quantity_display"),
+        InlineKeyboardButton("➕", callback_data=f"increase_{selected_product}")
+    )
+    inline_markup.add(InlineKeyboardButton("🛒 Sotib olish", callback_data=f"buy_{selected_product}"))
+
+    product_image_path = f"/Users/macbook/PycharmProjects/first_python_project/functions/bot/create_bot/images/{selected_product}.jpg"
+    try:
+        with open(product_image_path, "rb") as photo:
+            bot.send_photo(message.chat.id, photo, caption=f"Siz tanlagan mahsulot: {selected_product}", reply_markup=inline_markup)
+    except FileNotFoundError:
+        bot.send_message(message.chat.id, f"Siz tanlagan mahsulot: {selected_product}\nAfsuski, ushbu mahsulot rasmi mavjud emas.", reply_markup=inline_markup)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith(("increase_", "decrease_", "buy_")))
+def handle_quantity_buttons(call):
+    user_id = call.message.chat.id
+    product_name = call.data.split("_")[1]
+
+    if call.data.startswith("increase_"):
+        user_cart[product_name] += 1
+    elif call.data.startswith("decrease_"):
+        if user_cart[product_name] > 1:
+            user_cart[product_name] -= 1
+    elif call.data.startswith("buy_"):
+        quantity = user_cart[product_name]
+        bot.send_message(user_id, f"Rahmat! Siz {quantity} dona {product_name} sotib olishni tanladingiz. Operator siz bilan tez orada bog'lanadi.")
+        return
+
+    inline_markup = InlineKeyboardMarkup()
+    inline_markup.row(
+        InlineKeyboardButton("➖", callback_data=f"decrease_{product_name}"),
+        InlineKeyboardButton(f"{user_cart[product_name]}", callback_data="quantity_display"),
+        InlineKeyboardButton("➕", callback_data=f"increase_{product_name}")
+    )
+    inline_markup.add(InlineKeyboardButton("🛒 Sotib olish", callback_data=f"buy_{product_name}"))
+
+    bot.edit_message_reply_markup(chat_id=user_id, message_id=call.message.message_id, reply_markup=inline_markup)
 
 
 

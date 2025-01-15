@@ -1,0 +1,4 @@
+Latitude: 41.360778, Longitude: 69.339763
+Latitude: 41.360836, Longitude: 69.339798
+Latitude: 41.360836, Longitude: 69.339798
+Latitude: 41.360836, Longitude: 69.339798
